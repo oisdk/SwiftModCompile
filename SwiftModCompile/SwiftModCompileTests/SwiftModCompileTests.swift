@@ -9,6 +9,23 @@
 import XCTest
 @testable import SwiftModCompile
 
+func testSccs<H:Hashable,C:CollectionType where C.Generator.Element == H>
+  (graph: [H:C], sccs: Set<Set<H>>) {
+    for (var scc) in sccs {
+      guard let head = scc.popFirst() else { XCTAssert(false); return }
+      if scc.isEmpty {
+        XCTAssert((graph[head]?.contains(head))!)
+        continue
+      }
+      var cur = head
+      while true {
+        guard let next = graph[cur].map(scc.intersect)?.first else { XCTAssert(false); return }
+        if cur == head { break }
+        cur = next
+      }
+    }
+}
+
 class SwiftModCompileTests: XCTestCase {
   func testSCC() {
 //
@@ -35,5 +52,6 @@ class SwiftModCompileTests: XCTestCase {
       ["H"]
     ]
     XCTAssertEqual(sccs, tarjan(graph))
+    testSccs(graph, sccs: tarjan(graph))
   }
 }

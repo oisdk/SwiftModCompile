@@ -1,19 +1,7 @@
-extension Dictionary {
-  private func hasKey(key: Key) -> Bool {
-    switch self[key] {
-    case .Some: return true
-    case .None: return false
-    }
-  }
-}
-
 public func tarjan<H:Hashable,C:CollectionType where C.Generator.Element == H>(graph: [H:C]) -> Set<Set<H>> {
   
   var info: [H:(index: Int, lowlink: Int, onStack: Bool)] = [:]
-  var index = 0
-  var stack: [H] = []
-  var result: Set<Set<H>> = []
-  
+  var (index,stack,sccs): (Int,[H],Set<Set<H>>) = (0,[],[])
   
   func strongconnect(v: H) {
     info[v] = (index,index,true)
@@ -21,12 +9,11 @@ public func tarjan<H:Hashable,C:CollectionType where C.Generator.Element == H>(g
     stack.append(v)
     for w in graph[v]!{
       switch info[w]{
+      case let (i,_,true)?: info[v]!.lowlink = min(info[v]!.lowlink, i)
+      case .Some: continue
       case nil:
         strongconnect(w)
         info[v]!.lowlink = min(info[v]!.lowlink, info[w]!.lowlink)
-      case let (i,_,true)?:
-        info[v]!.lowlink = min(info[v]!.lowlink, i)
-      default: continue
       }
     }
     
@@ -37,7 +24,7 @@ public func tarjan<H:Hashable,C:CollectionType where C.Generator.Element == H>(g
         if w == v { break }
         scc.insert(w)
       }
-      result.insert(scc)
+      sccs.insert(scc)
     }
   }
   
@@ -47,6 +34,6 @@ public func tarjan<H:Hashable,C:CollectionType where C.Generator.Element == H>(g
     }
   }
   
-  return result
+  return sccs
   
 }
